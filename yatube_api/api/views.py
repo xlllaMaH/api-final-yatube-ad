@@ -5,13 +5,20 @@ from rest_framework.response import Response
 from posts.models import Post, Group, Follow, Comment
 
 from .serializers import PostSerializer, GroupSerializer, FollowSerializer, CommentSerializer
+from .permissions import AuthorOrReadOnly, ReadOnly
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, AuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def get_permissions(self):
+        if self.action == 'retrieve':
+            return(ReadOnly(),)
+        return super().get_permissions()
 
     @action(detail=True, methods=['GET', 'POST'], url_path='comments')
     def comment_list(self, request, pk=None):
