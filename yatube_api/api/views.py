@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters, exceptions
+from rest_framework import viewsets, filters, exceptions, permissions
 from posts.models import Post, Group, Follow
 
 from .serializers import PostSerializer, GroupSerializer, FollowSerializer
@@ -19,6 +19,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
     filter_backends = (filters.SearchFilter,)
+    permission_classes = (permissions.IsAuthenticated,)
     search_fields = ('^following__username',)
 
     def get_queryset(self):
