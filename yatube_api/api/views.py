@@ -1,7 +1,10 @@
-from rest_framework import viewsets, filters, exceptions, permissions
-from posts.models import Post, Group, Follow
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, filters, exceptions, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from posts.models import Post, Group, Follow, Comment
 
-from .serializers import PostSerializer, GroupSerializer, FollowSerializer
+from .serializers import PostSerializer, GroupSerializer, FollowSerializer, CommentSerializer
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -9,6 +12,41 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    @action(detail=True, methods=['GET', 'POST'], url_path='comments')
+    def comment_list(self, request, pk=None):
+        post = self.get_object()
+        if request.method == 'POST':
+            serializer = CommentSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save(author=request.user, post=post)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        comments = post.comments.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['GET', 'PUT', 'PATCH', 'DELETE'], url_path=r'comments/(?P<comment_id>\d+)')
+    def comment_detail(self, request, pk=None, comment_id=None):
+        post = self.get_object()
+        comment = get_object_or_404(Comment, id=comment_id, post=post)
+        if request.method == 'GET':
+            serializer = CommentSerializer(comment)
+            return Response(serializer.data)
+
+        if comment.author != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        elif request.method == 'PUT' or request.method == 'PATCH':
+            serializer = CommentSerializer(comment, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
+
+        elif request.method == 'DELETE':
+            comment.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
