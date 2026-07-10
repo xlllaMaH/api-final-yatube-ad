@@ -1,0 +1,1 @@
+"""init yatube_api."""

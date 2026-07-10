@@ -1,18 +1,25 @@
+"""Models for app Posts."""
 from django.contrib.auth import get_user_model
 from django.db import models
 
 User = get_user_model()
 
+
 class Group(models.Model):
+    """Model Group."""
+
     title = models.CharField(max_length=128)
     slug = models.SlugField(unique=True)
     description = models.TextField()
 
     def __str__(self):
+        """Magic method for correct display."""
         return self.title
 
 
 class Post(models.Model):
+    """Model Post."""
+
     text = models.TextField()
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     author = models.ForeignKey(
@@ -25,10 +32,13 @@ class Post(models.Model):
     )
 
     def __str__(self):
+        """Magic method for correct display."""
         return self.text
 
 
 class Comment(models.Model):
+    """Model Comment."""
+
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments')
     post = models.ForeignKey(
@@ -39,6 +49,8 @@ class Comment(models.Model):
 
 
 class Follow(models.Model):
+    """Model Follow."""
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='follower'
     )
@@ -47,11 +59,11 @@ class Follow(models.Model):
     )
 
     class Meta:
+        """Metadata model Post."""
+
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'following',],
+                fields=['user', 'following'],
                 name='unique_user_follow'
             ),
         ]
-
-
