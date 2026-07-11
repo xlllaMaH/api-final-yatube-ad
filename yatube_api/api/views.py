@@ -18,6 +18,7 @@ from .serializers import (
     FollowSerializer,
     CommentSerializer
 )
+from .pagination import PostPagination
 from .permissions import AuthorOrReadOnly, ReadOnly
 
 
@@ -29,6 +30,7 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly, AuthorOrReadOnly
     ]
+    pagination_class = PostPagination
 
     def perform_create(self, serializer):
         """Save object and assign author."""
