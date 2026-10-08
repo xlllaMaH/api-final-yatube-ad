@@ -80,7 +80,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
         elif request.method == 'PUT' or request.method == 'PATCH':
             serializer = CommentSerializer(
-                comment, data=request.data, partial=True
+                comment, data=request.data, partial=request.method == 'PATCH'
             )
             if serializer.is_valid():
                 serializer.save()
@@ -88,7 +88,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     serializer.data, status=status.HTTP_200_OK
                 )
             return Response(
-                serializer.errors, status=status.HTTP_403_FORBIDDEN
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
 
         elif request.method == 'DELETE':
